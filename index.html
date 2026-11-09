@@ -7,9 +7,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" crossorigin href="./assets/index-AVSj5ZJp.css">
   </head>
-  <body class="bg-[#F5F5F3] text-zinc-900 antialiased selection:bg-zinc-900 selection:text-white">
+  <body class="bg-[#EEF1F5] text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        var devScript = document.createElement('script');
+        devScript.type = 'module';
+        devScript.src = '/src/main.tsx';
+        document.body.appendChild(devScript);
+      } else {
+        var prodScript = document.createElement('script');
+        prodScript.type = 'module';
+        prodScript.crossOrigin = 'anonymous';
+        prodScript.src = './assets/index-su6mXJ5B.js';
+        document.body.appendChild(prodScript);
+      }
+    </script>
   </body>
 </html>
