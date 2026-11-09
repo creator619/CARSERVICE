@@ -38,6 +38,7 @@ import { TireHotelView } from './components/TireHotelView';
 import { CustomerPortalView } from './components/CustomerPortalView';
 import { DigitalServiceBookView } from './components/DigitalServiceBookView';
 import { PrintableDocumentModal } from './components/PrintableDocumentModal';
+import { handleStandaloneApi } from './standaloneStore';
 
 export function App() {
   const [data, setData] = useState<AppData>({
@@ -74,12 +75,15 @@ export function App() {
   const fetchBootstrap = async () => {
     try {
       const res = await fetch('/api/bootstrap');
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const json = await res.json();
         setData(json);
+        return;
       }
-    } catch (err) {
-      console.error('Failed to load state:', err);
+      setData(handleStandaloneApi('/api/bootstrap', 'GET'));
+    } catch {
+      setData(handleStandaloneApi('/api/bootstrap', 'GET'));
     } finally {
       setLoading(false);
     }
@@ -90,17 +94,26 @@ export function App() {
   }, []);
 
   const apiCall = async (url: string, method: string, body?: unknown, successMsg?: string) => {
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (res.ok) {
-      const nextState = await res.json();
-      setData(nextState);
-      if (successMsg) showToast(successMsg);
-      return nextState;
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const nextState = await res.json();
+        setData(nextState);
+        if (successMsg) showToast(successMsg);
+        return nextState;
+      }
+    } catch {
+      // Fallback to browser standalone storage on GitHub Pages
     }
+    const fallbackState = handleStandaloneApi(url, method, body);
+    setData({ ...fallbackState });
+    if (successMsg) showToast(successMsg);
+    return fallbackState;
   };
 
   const activeWorkOrdersCount = data.workOrders.filter((w) => w.status !== 'completed').length;
